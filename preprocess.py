@@ -1,28 +1,60 @@
-import pandas as pd
-from nltk.tokenize import RegexpTokenizer
-from tqdm import tqdm
 import json
-from multiprocessing import Pool, cpu_count
+import re
 
-data = pd.read_json("./reviews_devset.json", lines = True)
-stopwords = pd.read_csv("./stopwords.txt", sep = "\s+", header = None)
-stopwords = list(stopwords[0])
-tokenizer = RegexpTokenizer(r'\s+|\d+|[(){}[\].!?,;:+=\-_"\'`~#@&*%€$§\\/]', gaps = True)
-categories = data["category"].unique()
-DataFrameDict = {elem : [] for elem in categories}
+from mrjob.job import MRJob
+from mrjob.step import MRStep
 
-for key in DataFrameDict.keys():
-    DataFrameDict[key] = data["reviewText"][data.category == key]
 
-for cat in tqdm(categories):
-    tokens = []
+class PreprocessJob(MRJob):
+    """MapReduce job executing preprocessing steps on Amazon reviews dataset."""
 
-    for i in tqdm(DataFrameDict[cat].index):
-            test = tokenizer.tokenize(DataFrameDict[cat][i].lower())
-            test = [word for word in test if word not in stopwords and len(word) > 1]
-            tokens.append(test)
+    FILES = ["stopwords.txt"]
 
-    DataFrameDict[cat] = tokens          
+    # 1. Step Mapper
+    def preprocess_mapper(self, _, line):
+        """Mapping key/value pairs depending on review text and categories;
+        not using given stopwords and tokens.
 
-with open("./data.json", "w") as json_file:
-     json.dump(DataFrameDict, json_file)
+        Key: words
+        Value: category
+        """
+        data = json.loads(line)
+        stopwords = set(i.strip() for i in open("stopwords.txt"))
+        categories = data["category"]
+        reviewText = data["reviewText"].lower()
+        unigrams = re.split(
+            r'\s+|\d+|[(){}[\].!?,;:+=\-_"\'`~#@&*%€$§\\/]', "", reviewText
+        )
+        print(unigrams)
+
+        # for key in DataFrameDict.keys():
+        #     DataFrameDict[key] = data["reviewText"][data.category == key]
+
+        # for cat in categories:
+        #     tokens = []
+
+        #     for i in DataFrameDict[cat].index:
+        #         test = DataFrameDict[cat][i].lower()
+        #         test = [
+        #             word for word in test if word not in stopwords and len(word) > 1
+        #         ]
+        #         tokens.append(test)
+
+        #     DataFrameDict[cat] = tokens
+
+    # 2. Step Combiner
+
+    # 3. Step Reducer
+
+    def steps(self):
+        # defining steps of MapReduce job
+
+        return [
+            MRStep(
+                mapper=self.preprocess_mapper,
+            )
+        ]
+
+
+if __name__ == "__main__":
+    PreprocessJob.run()
