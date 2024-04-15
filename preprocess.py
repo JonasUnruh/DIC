@@ -23,6 +23,7 @@ class PreprocessJob(MRJob):
         Key: words
         Value: category
         """
+        
         data = json.loads(line)
         stopwords = set(i.strip() for i in open("stopwords.txt"))
 
