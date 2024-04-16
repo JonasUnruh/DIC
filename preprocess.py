@@ -6,7 +6,7 @@ from mrjob.step import MRStep
 
 
 class PreprocessJob(MRJob):
-    """MapReduce job executing preprocessing steps on Amazon reviews dataset."""
+    '''MapReduce job executing preprocessing steps on Amazon reviews dataset.'''
 
     FILES = ["stopwords.txt"]
 
@@ -17,12 +17,12 @@ class PreprocessJob(MRJob):
 
     # 1. Step Mapper
     def preprocess_mapper(self, _, line):
-        """Mapping key/value pairs depending on review text and categories;
+        '''Mapping key/value pairs depending on review text and categories;
         not using given stopwords and tokens.
 
         Key: words
         Value: category
-        """
+        '''
         
         data = json.loads(line)
         stopwords = set(i.strip() for i in open("stopwords.txt"))
@@ -84,7 +84,9 @@ class PreprocessJob(MRJob):
 
 
     def steps(self):
-        # defining steps of MapReduce job
+        '''
+        Define all needed steps for MRJob
+        '''
 
         return [
             MRStep(
@@ -93,7 +95,6 @@ class PreprocessJob(MRJob):
                 reducer=self.preprocess_reducer
             )
         ]
-
 
 if __name__ == "__main__":
     PreprocessJob.run()
