@@ -1,5 +1,6 @@
 import json
 import re
+from collections import defaultdict
 
 from mrjob.job import MRJob
 from mrjob.step import MRStep
@@ -27,7 +28,7 @@ class PreprocessJob(MRJob):
         data = json.loads(line)
         stopwords = set(i.strip() for i in open("stopwords.txt"))
 
-        category = data["category"]
+        category = str(data["category"])
         reviewText = str(data["reviewText"]).lower()
 
         #count total number of reviews and total number of reviews per category
@@ -35,7 +36,7 @@ class PreprocessJob(MRJob):
         self.increment_counter("categories", category)
 
         #Tokenize the text to unigrams and make values unique
-        unigrams = re.split(r'\s+|\d+|[(){}[\].!?,;:+=\-_"\'`~#@&*%€$§\\/]', reviewText)
+        unigrams = re.split(r'\s+|\d+|[(){}[\].!?,;:+=_"\'`~#@&*%€$§\\/\-]', reviewText)
         unigrams = set(unigrams)
 
         #check for stop and single length words and word category pairs
@@ -52,15 +53,11 @@ class PreprocessJob(MRJob):
         This function runs after the mapper function
         '''
 
-        word_count_dict = dict()
+        word_count_dict = defaultdict(int)
 
         for cat in category:
-            if cat in word_count_dict.keys():
-                word_count_dict[cat] += 1
+            word_count_dict[cat] += 1
 
-            else:
-                word_count_dict[cat] = 1
-        
         yield word, word_count_dict
 
 
@@ -70,15 +67,11 @@ class PreprocessJob(MRJob):
         Basically repeat combine step to return a word connected to a dict that holds the occurences per category
         '''
 
-        word_count_dict = dict()
+        word_count_dict = defaultdict(int)
 
         for word_dict in word_count:
-            for cat in word_dict:
-                if cat in word_count_dict.keys():
-                    word_count_dict[cat] += word_dict[cat]
-
-                else:
-                    word_count_dict[cat] = word_dict[cat]
+            for cat, count in word_dict.items():
+                word_count_dict[cat] += count
 
         yield word, word_count_dict
 
