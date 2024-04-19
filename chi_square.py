@@ -29,6 +29,9 @@ class ChiSquare(MRJob):
     def chi_square_mapper(self, _, line):
         '''
         Calculate chi square value for every word and return its value with its category
+
+        Key: category
+        Value: dictionary with word as key and chi square value as value
         '''
         
         try:
@@ -53,6 +56,9 @@ class ChiSquare(MRJob):
     def chi_square_reducer(self, category, values):
         '''
         Sort chi square values and reduce output to top 75 values
+
+        Key: None
+        Value: dictionary with category as key and top 75 words as dictionary with word as key and chi square value as value
         '''
 
         chi_square_dict = dict()
@@ -68,6 +74,10 @@ class ChiSquare(MRJob):
     def category_sort_reducer(self, _, dict):
         '''
         Sort categories alphabetically, return top 75 words per category and merged dictionary
+
+        Key: category
+        Value: top 75 words as dictionary with word as key and chi square value as value
+        + one line with top 75 words in all categories
         '''
 
         dict_pairs = list(dict)

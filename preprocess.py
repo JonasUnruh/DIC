@@ -51,6 +51,11 @@ class PreprocessJob(MRJob):
         Combine data to lower amount of data transfered in between steps.
         We take the pairs as input and create a dict for every word that counts the occurences per category.
         This function runs after the mapper function
+
+        Key: word
+        Value: dict with category as key and occurences as value
+
+        note: same word still appears multiple times
         '''
 
         word_count_dict = defaultdict(int)
@@ -66,6 +71,11 @@ class PreprocessJob(MRJob):
     def preprocess_reducer(self, word, word_count):
         '''
         Basically repeat combine step to return a word connected to a dict that holds the occurences per category
+
+        Key: word
+        Value: dict with category as key and occurences as value
+
+        note: words are unique
         '''
 
         word_count_dict = defaultdict(int)
