@@ -30,7 +30,7 @@ class ChiSquare(MRJob):
         '''
         Calculate chi square value for every word and return its value with its category
         '''
-
+        
         try:
             word, cat_dict = str(line).split(maxsplit = 1)
 
@@ -39,7 +39,7 @@ class ChiSquare(MRJob):
         
         cat_dict = json.loads(cat_dict.replace("'", '"'))
 
-        for cat in cat_dict.keys():
+        for cat in cat_dict:
             A = cat_dict[cat]
             B = sum(cat_dict.values()) - A
             C = self.counters[cat] - A

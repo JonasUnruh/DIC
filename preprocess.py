@@ -42,11 +42,11 @@ class PreprocessJob(MRJob):
         #check for stop and single length words and word category pairs
         for word in unigrams:
             if word not in stopwords and len(word) > 1:
-                yield word, category
+                yield word, {category: 1}
 
 
     # 2. Step Combiner
-    def preprocess_combiner(self, word, category):
+    def preprocess_combiner(self, word, category_dict):
         '''
         Combine data to lower amount of data transfered in between steps.
         We take the pairs as input and create a dict for every word that counts the occurences per category.
@@ -55,9 +55,10 @@ class PreprocessJob(MRJob):
 
         word_count_dict = defaultdict(int)
 
-        for cat in category:
-            word_count_dict[cat] += 1
-
+        for category in category_dict:
+            for cat in category:
+                word_count_dict[cat] += 1
+      
         yield word, word_count_dict
 
 
