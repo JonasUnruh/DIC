@@ -9,9 +9,6 @@ class ChiSquare(MRJob):
     Calculate chi square values for words in categories and return top 75 words per category and merged dictionary
     '''
 
-    total = 0
-    counters = {}    
-
     FILES = ['counters.txt']
 
     # 1. Step Mapper Init
@@ -24,6 +21,7 @@ class ChiSquare(MRJob):
             self.total, self.counters = file.readline().split(" ", 1)
             self.total = int(self.total)
             self.counters = json.loads(self.counters.replace("'", '"'))  
+
 
     # 2. Step Mapper
     def chi_square_mapper(self, _, line):
@@ -52,6 +50,7 @@ class ChiSquare(MRJob):
 
             yield cat, (word, chi_square)
 
+
     # 3. Step Reducer
     def chi_square_reducer(self, category, values):
         '''
@@ -69,6 +68,7 @@ class ChiSquare(MRJob):
         chi_square_dict = dict(sorted(chi_square_dict.items(), key=lambda x: x[1], reverse = True)[:75])
 
         yield None, (category, chi_square_dict)
+
 
     # 4. Step Reducer
     def category_sort_reducer(self, _, dict):

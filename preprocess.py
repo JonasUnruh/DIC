@@ -16,7 +16,13 @@ class PreprocessJob(MRJob):
         "categories": {}
     }
 
-    # 1. Step Mapper
+    # 1. Step Mapper init
+    def preprocess_mapper_init(self):
+        # Load stopwords file for every mapper
+        self.stopwords = set(i.strip() for i in open("stopwords.txt"))
+    
+
+    # 2. Step Mapper
     def preprocess_mapper(self, _, line):
         '''Mapping key/value pairs depending on review text and categories;
         not using given stopwords and tokens.
@@ -26,7 +32,6 @@ class PreprocessJob(MRJob):
         '''
         
         data = json.loads(line)
-        stopwords = set(i.strip() for i in open("stopwords.txt"))
 
         category = str(data["category"])
         reviewText = str(data["reviewText"]).lower()
@@ -41,11 +46,11 @@ class PreprocessJob(MRJob):
 
         #check for stop and single length words and word category pairs
         for word in unigrams:
-            if word not in stopwords and len(word) > 1:
+            if word not in self.stopwords and len(word) > 1:
                 yield word, {category: 1}
 
 
-    # 2. Step Combiner
+    # 3. Step Combiner
     def preprocess_combiner(self, word, category_dict):
         '''
         Combine data to lower amount of data transfered in between steps.
@@ -67,7 +72,7 @@ class PreprocessJob(MRJob):
         yield word, word_count_dict
 
 
-    # 3. Step Reducer
+    # 4. Step Reducer
     def preprocess_reducer(self, word, word_count):
         '''
         Basically repeat combine step to return a word connected to a dict that holds the occurences per category
@@ -94,6 +99,7 @@ class PreprocessJob(MRJob):
 
         return [
             MRStep(
+                mapper_init = self.preprocess_mapper_init,
                 mapper=self.preprocess_mapper,
                 combiner=self.preprocess_combiner,
                 reducer=self.preprocess_reducer
